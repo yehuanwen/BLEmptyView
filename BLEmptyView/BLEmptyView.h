@@ -14,11 +14,12 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStyle) {
 };
 
 /**
- Empty view using UIImage and UILabel. Supported horizontal and vertical layout.
+ Empty view using UIImage and UILabel. Supporting horizontal and vertical layout. Text in vertical layout can be multi lines.
  */
 @interface BLEmptyView : UIView
 @property (nonatomic, readonly) BLEmptyViewStyle style;// Default is horizontal
 @property (assign, nonatomic) CGFloat y;// self.frame.origin y. Default is 20
+@property (strong, nonatomic) UIFont *textFont;// UILabel text font
 @property (strong, nonatomic) UIColor *textColor;// UILabel text color
 @property (strong, nonatomic) UIColor *textShadowColor;// UILabel text shadow color
 @property (assign, nonatomic) CGSize textShadowOffset;  // Default is CGSizeMake(0, 1)

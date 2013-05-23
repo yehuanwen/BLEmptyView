@@ -16,7 +16,7 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
 };
 
 #define kHorizontalSpacing 5.0f// Horizontal spacing between UIImageView and UILabel
-#define kVerticalSpacing 10.0f// Vertical spacing between UIImageView and UILabel
+#define kVerticalSpacing 5.0f// Vertical spacing between UIImageView and UILabel
 
 @interface BLEmptyView ()
 @property (strong, nonatomic) UIImageView *imageView;
@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
     if (self = [super init]) {
         // Set default value
         _y = 20;
+        _textFont = [UIFont systemFontOfSize:18];
         _textColor = [UIColor colorWithRed:128/255.0f green:136/255.0f blue:149/255.0f alpha:1];
         _textShadowColor = [UIColor lightGrayColor];
         _textShadowOffset = CGSizeMake(0, 1);
@@ -55,12 +56,14 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
             _status = BLEmptyViewStatusNone;
         }
         //
+        _style = style;
+        //
         _imageView = [[UIImageView alloc] initWithImage:image];
         _imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
         //
         _textLabel = [[UILabel alloc] initWithFrame:CGRectZero];
         _textLabel.backgroundColor = [UIColor clearColor];
-        _textLabel.font = [UIFont systemFontOfSize:18];
+        _textLabel.font = _textFont;
         _textLabel.textColor = _textColor;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 		_textLabel.textAlignment = UITextAlignmentCenter;
@@ -70,18 +73,25 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
         _textLabel.shadowColor = _textShadowColor;
         _textLabel.shadowOffset = _textShadowOffset;
         _textLabel.text = text;
+        if (BLEmptyViewStyleVertical == _style) {
+            _textLabel.numberOfLines = 0;
+        }
         _textLabel.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
-        //
-        _style = style;
         //
         [self addSubview:_imageView];
         [self addSubview:_textLabel];
+        //
+        [self layout];// At first call [self layout], otherwise call [self setNeedsLayout]
     }
     return self;
 }
 
+#pragma mark - Layout methods
 - (void)layoutSubviews {
     [super layoutSubviews];
+    [self layout];
+}
+- (void)layout {// layout BLEmptyView
     switch (self.status) {
         case BLEmptyViewStatusImage:
         {
@@ -100,32 +110,31 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
             break;
         case BLEmptyViewStatusNone:
         {
-            NSAssert(1, @"can not be nothing");
+            NSAssert(1, @"UIImage and UILabel can not be both NULL!");
         }
             break;
         default:
-            NSAssert(1, @"can not be nothing");
             break;
     }
 }
-#pragma mark - Layout methods
-- (void)layoutImage {
+
+- (void)layoutImage {// layout image
     CGRect imageViewFrame = self.imageView.frame;
     imageViewFrame.origin.x = [self screenWidth] * 0.5f - imageViewFrame.size.width * 0.5f;
     imageViewFrame.origin.y = self.y;
     self.imageView.frame = imageViewFrame;
 }
 
-- (void)layoutLabel {
+- (void)layoutLabel {// layout label
     CGRect labelFrame = self.textLabel.frame;
-    CGSize labelSize = [self.textLabel.text sizeWithFont:self.textLabel.font];
+    CGSize labelSize = [self textLabelSize];
     labelFrame.size = labelSize;
     labelFrame.origin.x = [self screenWidth] * 0.5f - labelSize.width * 0.5f;
     labelFrame.origin.y = self.y;
     self.textLabel.frame = labelFrame;
 }
 
-- (void)layoutImageAndLabel {
+- (void)layoutImageAndLabel {// layout image and label
     
     switch (self.style) {
         case BLEmptyViewStyleHorizontal:
@@ -143,11 +152,11 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
     }
 }
 
-- (void)layoutHorizontal {
+- (void)layoutHorizontal {// horizontal layout image adn label
     CGRect imageViewFrame = self.imageView.frame;
 
     CGRect labelFrame = self.textLabel.frame;
-    CGSize labelSize = [self.textLabel.text sizeWithFont:self.textLabel.font];
+    CGSize labelSize = [self textLabelSize];
     labelFrame.size = labelSize;
     
     CGSize size = CGSizeZero;// Empty view size
@@ -169,32 +178,87 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
     self.textLabel.frame = labelFrame;
 }
 
-- (void)layoutVertical {
+- (void)layoutVertical {// vertical layout image adn label
     CGRect imageViewFrame = self.imageView.frame;
     imageViewFrame.origin.x = [self screenWidth] * 0.5f - imageViewFrame.size.width * 0.5f;
     imageViewFrame.origin.y = self.y;
     self.imageView.frame = imageViewFrame;
     
     CGRect labelFrame = self.textLabel.frame;
-    CGSize labelSize = [self.textLabel.text sizeWithFont:self.textLabel.font];
+    CGSize labelSize = [self textLabelSize];
     labelFrame.size = labelSize;
     labelFrame.origin.x = [self screenWidth] * 0.5f - labelSize.width * 0.5f;
     labelFrame.origin.y = imageViewFrame.origin.y + imageViewFrame.size.height + kVerticalSpacing;
     self.textLabel.frame = labelFrame;
 }
 
+#pragma mark - UILabel size
+- (CGSize)textLabelSize {
+    if (BLEmptyViewStyleVertical == self.style) {
+        return [self.textLabel.text sizeWithFont:self.textLabel.font constrainedToSize:CGSizeMake([self screenWidth] - 20, CGFLOAT_MAX)];
+    } else {
+        return [self.textLabel.text sizeWithFont:self.textLabel.font];
+    }
+}
+
 #pragma mark - width and height
-- (CGFloat)screenWidth {
+- (CGFloat)screenWidth {// screen width
     return [UIScreen mainScreen].bounds.size.width;
 }
 
-- (CGFloat)screenHeight {
+- (CGFloat)screenHeight {// screen height
     return [UIScreen mainScreen].bounds.size.height;
+}
+
+- (CGFloat)emptyViewWidth {// BLEmptyView width
+    CGFloat width;
+    switch (self.style) {
+        case BLEmptyViewStyleHorizontal:
+        {
+            width = self.imageView.frame.size.width + self.textLabel.frame.size.width + kHorizontalSpacing;
+        }
+            break;
+        case BLEmptyViewStyleVertical:
+        {
+            width = fmaxf(self.imageView.frame.size.width, self.textLabel.frame.size.width);
+        }
+            break;
+        default:
+            width = 0.0f;
+            break;
+    }
+    return width;
+}
+
+- (CGFloat)emptyViewHeight {// BLEmptyView height
+    CGFloat height;
+    switch (self.style) {
+        case BLEmptyViewStyleHorizontal:
+        {
+            height = fmaxf(self.imageView.frame.size.height, self.textLabel.frame.size.height);
+        }
+            break;
+        case BLEmptyViewStyleVertical:
+        {
+            height = self.imageView.frame.size.height + self.textLabel.frame.size.height + kVerticalSpacing;
+        }
+            break;
+        default:
+            height = 0.0f;
+            break;
+    }
+    return height;
 }
 
 #pragma mark - Setters
 - (void)setY:(CGFloat)y {
     _y = y;
+    [self setNeedsLayout];
+}
+
+- (void)setTextFont:(UIFont *)textFont {
+    _textFont = textFont;
+    self.textLabel.font = _textFont;
     [self setNeedsLayout];
 }
 
@@ -211,6 +275,11 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
 - (void)setTextShadowOffset:(CGSize)textShadowOffset {
     _textShadowOffset = textShadowOffset;
     self.textLabel.shadowOffset = _textShadowOffset;
+}
+
+- (void)setCenter:(CGPoint)center {
+    CGFloat centerY = center.y - [self emptyViewHeight] * 0.5f - [UIApplication sharedApplication].statusBarFrame.size.height;
+    [self setY:centerY];
 }
 
 @end
