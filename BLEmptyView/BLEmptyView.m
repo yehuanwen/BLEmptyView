@@ -59,7 +59,6 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
         _style = style;
         //
         _imageView = [[UIImageView alloc] initWithImage:image];
-        _imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
         //
         _textLabel = [[UILabel alloc] initWithFrame:CGRectZero];
         _textLabel.backgroundColor = [UIColor clearColor];
@@ -76,7 +75,6 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
         if (BLEmptyViewStyleVertical == _style) {
             _textLabel.numberOfLines = 0;
         }
-        _textLabel.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
         //
         [self addSubview:_imageView];
         [self addSubview:_textLabel];
@@ -116,6 +114,7 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
         default:
             break;
     }
+    [self updateEmptyViewFrame];
 }
 
 - (void)layoutImage {// layout image
@@ -192,6 +191,13 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
     self.textLabel.frame = labelFrame;
 }
 
+#pragma mark - Update empty view frame
+- (void)updateEmptyViewFrame {
+    CGRect emptyViewFrame = CGRectZero;
+    emptyViewFrame.size.width = [self screenWidth];
+    emptyViewFrame.size.height = self.y + [self emptyViewHeight];
+    self.frame = emptyViewFrame;
+}
 #pragma mark - UILabel size
 - (CGSize)textLabelSize {
     if (BLEmptyViewStyleVertical == self.style) {
