@@ -20,7 +20,7 @@
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
     self.view.backgroundColor = [UIColor darkGrayColor];
     BLEmptyView *imageOnly = [[BLEmptyView alloc] initWithImage:[UIImage imageNamed:@"jiangpin_face"]];
-    imageOnly.y = 0;
+//    imageOnly.y = 0;
     [self.view addSubview:imageOnly];
 
     BLEmptyView *textOnly = [[BLEmptyView alloc] initWithText:@"text only! be center!"];
