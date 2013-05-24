@@ -192,7 +192,7 @@ typedef NS_ENUM(NSInteger, BLEmptyViewStatus) {
 }
 
 #pragma mark - Update empty view frame
-- (void)updateEmptyViewFrame {
+- (void)updateEmptyViewFrame {// must call after [self layout] to avoid some problems
     CGRect emptyViewFrame = CGRectZero;
     emptyViewFrame.size.width = [self screenWidth];
     emptyViewFrame.size.height = self.y + [self emptyViewHeight];
